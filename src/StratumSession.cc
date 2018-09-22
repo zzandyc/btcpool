@@ -753,7 +753,7 @@ void StratumSession::handleRequest_Submit(const string &idStr,
                                           uint32_t nTime,
                                           bool isAgentSession,
                                           DiffController *sessionDiffController,
-                                          const uint32_t versionMask) {
+                                          uint32_t versionMask) {
   //
   // if share is from agent session, we don't need to send reply json
   //
@@ -762,12 +762,24 @@ void StratumSession::handleRequest_Submit(const string &idStr,
     return;
   }
 
+  //
+  // Fix compatibility issues with some AntMiner firmware.
+  // Some AntMiner firmware does not request AsicBoost mining,
+  // but will submit a value that is not compatible with versionMask
+  // as the 6th field (the value is 0x20000000u, the current version).
+  // 
+  // As a temporary fix, the incompatible versionMask will be ignored.
+  // 
   // check version mask
   if (versionMask != 0 && ((~versionMask_) & versionMask) != 0) {
-    if (isAgentSession == false) {
+    LOG(WARNING) << "ignore invalid version mask: " << Strings::Format("%08x", versionMask)
+                 << ", worker: " << worker_.fullName_
+                 << ", agent: " << clientAgent_;
+    versionMask = 0;
+    /*if (isAgentSession == false) {
       responseError(idStr, StratumError::ILLEGAL_VERMASK);
     }
-    return;
+    return;*/
   }
 
   const string extraNonce2Hex = Strings::Format("%016llx", extraNonce2);

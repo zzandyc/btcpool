@@ -295,7 +295,7 @@ public:
                             const uint32_t nonce, uint32_t nTime,
                             bool isAgentSession,
                             DiffController *sessionDiffController,
-                            const uint32_t versionMask);
+                            uint32_t versionMask);
   uint32_t getSessionId() const;
 };
 
